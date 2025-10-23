@@ -5,56 +5,68 @@ import { useIonViewWillEnter } from '@ionic/react';
 import { Preferences } from '@capacitor/preferences';
 import './Galeria.css';
 
+type Video = {
+  id: string;
+  title: string;
+  thumb: string;
+  url: string;
+  date: number; // Timestamp
+};
+
+const listaVideosMock: Video[] = [
+  {
+    id: '1',
+    title: 'Vídeo 1',
+    thumb: 'https://img.youtube.com/vi/ScMzIvxBSi4/hqdefault.jpg',
+    url: 'https://www.youtube.com/watch?v=ScMzIvxBSi4',
+    date: 1625155200000 // 1 de julho de 2021
+  },
+  {
+    id: '2',
+    title: 'Vídeo 2',
+    thumb: 'https://img.youtube.com/vi/tAGnKpE4NCI/hqdefault.jpg',
+    url: 'https://www.youtube.com/watch?v=tAGnKpE4NCI',
+    date: 1625241600000 // 2 de julho de 2021
+  },
+  {
+    id: '3',
+    title: 'Vídeo 3',
+    thumb: 'https://img.youtube.com/vi/JGwWNGJk1Zw/hqdefault.jpg',
+    url: 'https://www.youtube.com/watch?v=JGwWNGJdvx8',
+    date: 1625328000000 // 3 de julho de 2021
+  }
+];
+
 const Galeria: React.FC = () => {
-  const [photos, setPhotos] = React.useState<string[]>([]);
 
-
-  const loadPhotos = async () => {
-    const { value } = await Preferences.get ({ key: 'photos' });
-    if (value) {
-      setPhotos(JSON.parse(value));
-    } else {
-      // Mock inicial
-      setPhotos([
-        'https://images.unsplash.com/photo-1506744038136-46273834b3fb',
-        'https://images.unsplash.com/photo-1465101046530-73398c7f28ca',
-        'https://images.unsplash.com/photo-1519125323398-675f0ddb6308'
-      ]);
-    }
-  };
-
-  useIonViewWillEnter(() => {
-    loadPhotos();
-  });
-
-  const excluirFoto = async (idx: number) => {
-    const novasFotos = [...photos];
-    novasFotos.splice(idx, 1);
-    setPhotos(novasFotos);
-    await Preferences.set({ key: 'photos', value: JSON.stringify(novasFotos) });
-  };
+  const [videos, setVideos] = React.useState<Video[]>(listaVideosMock);
 
   return (
     <IonPage>
       <IonHeader>
         <IonToolbar>
-          <IonTitle>Galeria de Fotos</IonTitle>
+          <IonTitle>Samuflix</IonTitle>
         </IonToolbar>
       </IonHeader>
       <IonContent fullscreen>
         <IonHeader collapse="condense">
           <IonToolbar>
-            <IonTitle size="large">Galeria de Fotos</IonTitle>
+            <IonTitle size="large">Samuflix</IonTitle>
           </IonToolbar>
         </IonHeader>
-        <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: 16, marginTop: 32 }}>
-          {photos.map((url, idx) => (
-            <div key={idx} style={{ position: 'relative', display: 'inline-oabblock' }}>
-              <img src={url} alt={`Foto ${idx + 1}`} style={{ width: 160, height: 160, objectFit: 'cover', borderRadius: 8 }} />
-              <button onClick={() => excluirFoto(idx)} style={{ position: 'absolute', top: 8, right: 8, background: '#e74c3c', color: '#fff', border: 'none', borderRadius: '50%', width: 32, height: 32, cursor: 'pointer', fontWeight: 'bold', fontSize: 18 }}>×</button>
+
+        <div className="video-list">
+          {videos.map((v) => (
+            <div className="video-card" key={v.id} onClick={() => alert(v.id)} role="button" tabIndex={0}>
+              <img className="video-thumb" src={v.thumb} alt={v.title} />
+              <div className="video-meta">
+                <div className="video-title">{v.title}</div>
+                <div className="video-date">Publicado em {(v.date)}</div>
+              </div>
             </div>
           ))}
         </div>
+
       </IonContent>
     </IonPage>
   );

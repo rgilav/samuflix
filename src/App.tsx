@@ -1,3 +1,4 @@
+import React from 'react';
 import { Redirect, Route } from 'react-router-dom';
 import {
   IonApp,
@@ -47,41 +48,63 @@ import './theme/variables.css';
 
 setupIonicReact();
 
-const App: React.FC = () => (
-  <IonApp>
-    <IonReactRouter>
-      <IonTabs>
-        <IonRouterOutlet>
-          <Route exact path="/galeria">
-            <Galeria />
-          </Route>
-          <Route exact path="/gravacao">
-            <Gravacao />
-          </Route>
-          <Route path="/mensagens">
-            <Mensagens />
-          </Route>
-          <Route exact path="/">
-            <Redirect to="/galeria" />
-          </Route>
-        </IonRouterOutlet>
-        <IonTabBar slot="bottom">
-          <IonTabButton tab="galeria" href="/galeria">
-            <IonIcon aria-hidden="true" icon={camera} />
-            <IonLabel>Últimos Vídeos</IonLabel>
-          </IonTabButton>
-          <IonTabButton tab="tab2" href="/gravacao">
-            <IonIcon aria-hidden="true" icon={images} />
-            <IonLabel>Enviar Vídeo</IonLabel>
-          </IonTabButton>
-          <IonTabButton tab="tab3" href="/mensagens">
-            <IonIcon aria-hidden="true" icon={people} />
-            <IonLabel>Mensagens</IonLabel>
-          </IonTabButton>
-        </IonTabBar>
-      </IonTabs>
-    </IonReactRouter>
-  </IonApp>
-);
+const SplashScreen = React.lazy(() => import('./components/SplashScreen')); 
+
+const App: React.FC = () => {
+  
+  const [mostraSplash, defineSplash] = React.useState(true);
+  
+  React.useEffect(() => {
+    const t = setTimeout(() => {
+      defineSplash(false);
+    }, 3000);
+
+  }, []);
+
+  return (
+
+    mostraSplash ?
+      <IonApp>
+      <React.Suspense fallback={<div>Carregando...</div>}>
+        <SplashScreen />
+      </React.Suspense>
+      </IonApp>
+    :
+    <IonApp>
+      <IonReactRouter>
+        <IonTabs>
+          <IonRouterOutlet>
+            <Route exact path="/galeria">
+              <Galeria />
+            </Route>
+            <Route exact path="/gravacao">
+              <Gravacao />
+            </Route>
+            <Route path="/mensagens">
+              <Mensagens />
+            </Route>
+            <Route exact path="/">
+              <Redirect to="/galeria" />
+            </Route>
+          </IonRouterOutlet>
+          <IonTabBar slot="bottom">
+            <IonTabButton tab="galeria" href="/galeria">
+              <IonIcon aria-hidden="true" icon={camera} />
+              <IonLabel>Últimos Vídeos</IonLabel>
+            </IonTabButton>
+            <IonTabButton tab="tab2" href="/gravacao">
+              <IonIcon aria-hidden="true" icon={images} />
+              <IonLabel>Enviar Vídeo</IonLabel>
+            </IonTabButton>
+            <IonTabButton tab="tab3" href="/mensagens">
+              <IonIcon aria-hidden="true" icon={people} />
+              <IonLabel>Mensagens</IonLabel>
+            </IonTabButton>
+          </IonTabBar>
+        </IonTabs>
+      </IonReactRouter>
+    </IonApp>
+  );
+}
 
 export default App;
