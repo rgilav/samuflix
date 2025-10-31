@@ -54,11 +54,10 @@ const MOCK_VIDEOS: Video[] = [
 
 const Galeria: React.FC = () => {
     
-  const [videos, setVideos] = React.useState<Video[]>(MOCK_VIDEOS);
+  const [videos, setVideos] = React.useState<Video[] | null>(null);
   const [selectedVideo, setSelectedVideo] = React.useState<Video | null>(null);
 
-  React.useEffect(() => {
-    (async () => {
+  const carregarVideos = React.useCallback(async () => {
 
       // try load from Firestore as well when configured
       try {
@@ -66,38 +65,19 @@ const Galeria: React.FC = () => {
           const remote = await fetchVideosFromFirestore();
           if (remote && remote.length) {
             const mapped: Video[] = remote.map(r => ({ id: r.id, title: r.title, thumb: r.thumbUrl, publishedAt: r.publishedAt, media: r.mediaUrl }));
-            setVideos(prev => [...mapped, ...prev]);
+            setVideos(mapped);
           }
         }
       } catch (e) {
         // ignore firebase errors
       }
 
-      try {
+  }, []);
 
-        const { Preferences } = await import('@capacitor/preferences');
-        const { value } = await Preferences.get({ key: 'videos' });
+  React.useEffect(() => {
 
-        if (value) {
+    window.addEventListener('videos:reload', carregarVideos);
 
-          const saved = JSON.parse(value) as any[];
-          
-          const savedVideos: Video[] = saved.map(s => ({
-            id: s.id,
-            title: s.title,
-            thumb: s.thumb || '',
-            publishedAt: s.createdAt || Date.now(),
-            media: s.media || ''
-          }));
-
-          setVideos(prev => [...savedVideos, ...prev]);
-
-        }
-      } catch (e) {
-        // ignore
-      }
-
-    })();
   }, []);
 
   // Formato simples para exibir data em pt-BR
@@ -120,7 +100,7 @@ const Galeria: React.FC = () => {
         </IonHeader>
 
         <div className="video-list">
-          {videos.map((v) => (
+          {videos != null && videos.map((v) => (
             <div className="video-card" key={v.id} onClick={() => openVideo(v)} role="button" tabIndex={0}>
               <img className="video-thumb" src={v.thumb} alt={v.title} />
               <div className="video-meta">

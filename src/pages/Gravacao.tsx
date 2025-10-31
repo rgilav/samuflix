@@ -98,11 +98,31 @@ const Gravacao: React.FC = () => {
 
                         // create thumbnail by drawing first frame
                         const thumbDataUrl = await new Promise<string>((res) => {
+                            
                             const v = document.createElement('video');
                             v.src = URL.createObjectURL(blob);
                             v.muted = true;
                             v.playsInline = true;
-                            v.addEventListener('loadeddata', () => {
+
+                            const timeoutId = setTimeout(() => {
+                                cleanup();
+                                res('');
+                            }, 5000);
+
+                            const cleanup = () => {
+                                clearTimeout(timeoutId);
+                                v.removeEventListener('loadedmetadata', onLoadedmetadata);
+                                v.removeEventListener('seeked', onSeeked);
+                            }
+
+                            const onLoadedmetadata = () => {
+                                v.currentTime = 0;
+                            }
+
+                            const onSeeked = () => {
+
+                                cleanup();
+
                                 try {
                                     const canvas = document.createElement('canvas');
                                     canvas.width = v.videoWidth || 320;
@@ -110,12 +130,17 @@ const Gravacao: React.FC = () => {
                                     const ctx = canvas.getContext('2d');
                                     if (ctx) ctx.drawImage(v, 0, 0, canvas.width, canvas.height);
                                     res(canvas.toDataURL('image/png'));
+
                                 } catch (e) {
                                     res('');
                                 }
-                            });
-                            // fallback if loadeddata doesn't fire
-                            setTimeout(() => res(''), 2000);
+
+                            };
+
+                            v.addEventListener('loadedmetadata', onLoadedmetadata);
+                            v.addEventListener('seeked', onSeeked);
+                            v.load();
+
                         });
 
                         if (thumbDataUrl) {
@@ -130,6 +155,8 @@ const Gravacao: React.FC = () => {
                         await saveVideoMetadata({ id, title, mediaUrl, thumbUrl, publishedAt: Date.now() });
                         alert('Gravação salva no Firebase!');
 
+                        window.dispatchEvent(new CustomEvent('videos:reload'));
+
                         // cleanup
                         setTimeout(() => { if (blobUrl) { URL.revokeObjectURL(blobUrl); setBlobUrl(null); } }, 5000);
                         return;
@@ -141,17 +168,14 @@ const Gravacao: React.FC = () => {
 
 
                 // save metadados
-                const item = { id, title, mediaUrl, thumbUrl, publishedAt: Date.now() };
+                /*const item = { id, title, mediaUrl, thumbUrl, publishedAt: Date.now() };
 
                 const { Preferences } = await import('@capacitor/preferences');
                 const { value } = await Preferences.get({ key: 'videos' });
                 const list = value ? JSON.parse(value) : [];
                 list.unshift(item);
                 await Preferences.set({ key: 'videos', value: JSON.stringify(list) });
-                alert('Gravação salva!');
-
-                // cleanup
-                setTimeout(() => { if (blobUrl) { URL.revokeObjectURL(blobUrl); setBlobUrl(null); } }, 5000);
+                alert('Gravação salva!');*/
 
             } catch (err) {
                 console.error(err);
